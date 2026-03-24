@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tactical Cleanup Prototype</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "#131313",
+              surface: "#1c1b1b",
+              primary: "#ffb4a8",
+              accent: "#8b0000",
+              outline: "#aa8984",
+            },
+            fontFamily: {
+              headline: ["Space Grotesk", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-background text-white min-h-screen font-body">
+    <main class="max-w-4xl mx-auto px-6 py-12">
+      <div class="mb-10">
+        <p class="text-primary uppercase tracking-[0.3em] text-xs mb-3">
+          Stitch Prototype
+        </p>
+        <h1 class="font-headline text-4xl md:text-6xl font-bold tracking-tight">
+          Tactical Cleanup Web Preview
+        </h1>
+        <p class="text-white/70 mt-4 max-w-2xl leading-7">
+          This is a browser-friendly version of your mobile app prototype. Open
+          any page below to preview the UI on your computer before we convert it
+          into a real app.
+        </p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <a
+          class="block rounded-xl border border-white/10 bg-surface p-6 hover:border-primary hover:shadow-[0_0_30px_rgba(139,0,0,0.25)] transition"
+          href="./dashboard.html"
+        >
+          <p class="text-xs uppercase tracking-[0.25em] text-outline mb-2">
+            Page 01
+          </p>
+          <h2 class="font-headline text-2xl font-bold text-primary">
+            Dashboard
+          </h2>
+          <p class="text-white/70 mt-2">
+            Main status page with recovery stats and junk category cards.
+          </p>
+        </a>
+
+        <a
+          class="block rounded-xl border border-white/10 bg-surface p-6 hover:border-primary hover:shadow-[0_0_30px_rgba(139,0,0,0.25)] transition"
+          href="./summary.html"
+        >
+          <p class="text-xs uppercase tracking-[0.25em] text-outline mb-2">
+            Page 02
+          </p>
+          <h2 class="font-headline text-2xl font-bold text-primary">
+            Cleanup Summary
+          </h2>
+          <p class="text-white/70 mt-2">
+            Result screen showing cleaned space and cleanup report details.
+          </p>
+        </a>
+
+        <a
+          class="block rounded-xl border border-white/10 bg-surface p-6 hover:border-primary hover:shadow-[0_0_30px_rgba(139,0,0,0.25)] transition"
+          href="./sweep.html"
+        >
+          <p class="text-xs uppercase tracking-[0.25em] text-outline mb-2">
+            Page 03
+          </p>
+          <h2 class="font-headline text-2xl font-bold text-primary">
+            Sludge Sweep
+          </h2>
+          <p class="text-white/70 mt-2">
+            The gesture-focused cleaning page with the swipe-to-clear concept.
+          </p>
+        </a>
+
+        <a
+          class="block rounded-xl border border-white/10 bg-surface p-6 hover:border-primary hover:shadow-[0_0_30px_rgba(139,0,0,0.25)] transition"
+          href="./history.html"
+        >
+          <p class="text-xs uppercase tracking-[0.25em] text-outline mb-2">
+            Page 04
+          </p>
+          <h2 class="font-headline text-2xl font-bold text-primary">
+            Cleanup History
+          </h2>
+          <p class="text-white/70 mt-2">
+            Mission archive page with lifetime cleanup stats and timeline.
+          </p>
+        </a>
+      </div>
+
+      <div class="mt-10 rounded-xl border border-primary/20 bg-[#220909] p-6">
+        <h3 class="font-headline text-xl text-primary font-bold">
+          How to preview
+        </h3>
+        <p class="text-white/80 mt-3 leading-7">
+          You can open <code>index.html</code> directly in your browser, or run
+          a local server later for a more app-like workflow.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "ai-for-prompts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small Gemini-backed prompt refinement web app.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>AI for Prompts</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;800&family=Inter:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              tertiary: "#3b3b3b",
+              "secondary-container": "#d6d4d3",
+              "on-secondary": "#ffffff",
+              surface: "#f9f9f9",
+              "primary-fixed-dim": "#474747",
+              "on-primary-container": "#ffffff",
+              "inverse-primary": "#c6c6c6",
+              outline: "#777777",
+              secondary: "#5f5e5e",
+              "on-primary": "#e2e2e2",
+              "on-surface-variant": "#474747",
+              "outline-variant": "#c6c6c6",
+              "surface-container-highest": "#e2e2e2",
+              "secondary-fixed-dim": "#acabab",
+              "on-primary-fixed": "#ffffff",
+              "inverse-on-surface": "#f0f1f1",
+              "surface-container-lowest": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-secondary-container": "#1b1c1c",
+              error: "#ba1a1a",
+              "secondary-fixed": "#c8c6c6",
+              "on-error": "#ffffff",
+              "surface-container-low": "#f3f3f4",
+              "tertiary-fixed-dim": "#474747",
+              "on-secondary-fixed-variant": "#3b3b3b",
+              "surface-dim": "#dadada",
+              "on-error-container": "#410002",
+              "primary-fixed": "#5e5e5e",
+              "on-background": "#1a1c1c",
+              "surface-variant": "#e2e2e2",
+              "on-tertiary-fixed": "#ffffff",
+              "on-tertiary-fixed-variant": "#e2e2e2",
+              primary: "#000000",
+              background: "#f9f9f9",
+              "tertiary-container": "#747474",
+              "surface-tint": "#5e5e5e",
+              "surface-bright": "#f9f9f9",
+              "on-tertiary-container": "#ffffff",
+              "on-tertiary": "#e2e2e2",
+              "primary-container": "#3b3b3b",
+              "on-surface": "#1a1c1c",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "surface-container-high": "#e8e8e8",
+              "inverse-surface": "#2f3131",
+              "on-secondary-fixed": "#1b1c1c",
+              "surface-container": "#eeeeee",
+              "tertiary-fixed": "#5e5e5e",
+            },
+            fontFamily: {
+              headline: ["Manrope"],
+              body: ["Inter"],
+              label: ["Inter"],
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+        font-size: 20px;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      body {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-white">
+    <div class="flex h-screen overflow-hidden">
+      <aside class="hidden md:flex flex-col h-screen w-60 border-r border-neutral-200 bg-[#f3f3f4] py-6 px-4 min-h-0">
+        <div class="mb-8 px-2">
+          <h1 class="font-bold text-[1.4rem] text-black font-headline tracking-tighter">
+            AI for Prompts
+          </h1>
+          <p class="mt-2 text-xs font-manrope tracking-wide text-neutral-400 leading-5">
+            Turn rough ideas into clear image prompts by AI
+          </p>
+        </div>
+
+        <button
+          id="new-session-btn"
+          class="mt-2 mb-7 w-full bg-primary text-on-primary py-3 px-4 rounded-lg font-label text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+        >
+          <span class="material-symbols-outlined">add</span>
+          New Session
+        </button>
+
+        <nav class="space-y-1">
+          <a
+            class="flex items-center gap-3 px-3 py-3 bg-[#e2e2e2] text-black border-l-2 border-black font-manrope text-xs tracking-wide uppercase transition-all duration-300 ease-in-out"
+            href="#workspace"
+          >
+            <span class="material-symbols-outlined">edit_note</span>
+            Workspace
+          </a>
+        </nav>
+
+        <div id="history-panel" class="mt-7 px-1 flex-1 min-h-0 flex flex-col">
+          <p class="px-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-400">
+            Recent Sessions
+          </p>
+          <div id="history-list" class="mt-3 space-y-2 overflow-y-auto no-scrollbar pr-1">
+          </div>
+        </div>
+      </aside>
+
+      <main class="flex-1 min-h-screen flex flex-col">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden px-4 md:px-6 py-6 gap-4">
+          <section id="workspace" class="flex-1 flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-headline text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">
+                Source Intent
+              </span>
+              <div class="flex gap-2">
+                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                <span class="w-2 h-2 rounded-full bg-surface-container-highest"></span>
+                <span class="w-2 h-2 rounded-full bg-surface-container-highest"></span>
+              </div>
+            </div>
+
+            <div id="workspace-card" class="flex-1 flex flex-col bg-surface-container-lowest border border-outline-variant/10 rounded-xl overflow-hidden min-h-0 relative">
+              <div id="drop-overlay" class="hidden absolute inset-0 z-20 bg-white/80 backdrop-blur-sm border-2 border-dashed border-primary flex items-center justify-center">
+                <p class="text-sm font-semibold tracking-[0.12em] uppercase text-neutral-500">
+                  Drop image references here
+                </p>
+              </div>
+              <div id="message-list" class="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-4 min-h-[0]">
+              </div>
+
+              <div class="px-6 pt-4 pb-5 bg-surface-container-low/30 border-t border-outline-variant/5 min-h-[172px]">
+                <div class="w-full">
+                  <textarea
+                    id="prompt-input"
+                    class="h-24 w-full bg-transparent border-none focus:ring-0 resize-none p-0 text-base leading-7 placeholder:text-neutral-300 placeholder:italic"
+                    placeholder="Type your raw prompt idea here..."
+                  ></textarea>
+                </div>
+
+                <div id="attachment-preview-list" class="mt-3 hidden flex flex-wrap gap-3"></div>
+
+                <div class="mt-4 flex items-end justify-between">
+                  <div class="flex items-end gap-3 pl-1">
+                    <button id="voice-btn" class="p-3 rounded-full hover:bg-surface-container-high text-neutral-400 hover:text-black transition-all">
+                      <span class="material-symbols-outlined">mic</span>
+                    </button>
+                    <button
+                      id="voice-language-btn"
+                      class="h-9 min-w-[2.75rem] rounded-full border border-outline-variant/20 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500 transition-all hover:bg-surface-container-high hover:text-black"
+                      title="Switch voice language"
+                    >
+                      EN
+                    </button>
+                    <button id="attach-btn" class="p-3 rounded-full hover:bg-surface-container-high text-neutral-400 hover:text-black transition-all">
+                      <span class="material-symbols-outlined">attach_file</span>
+                    </button>
+                    <input id="file-input" type="file" accept="image/*" multiple class="hidden" />
+                  </div>
+
+                  <button id="refine-btn" class="bg-primary text-on-primary px-5 py-3 rounded-lg font-label text-xs font-bold uppercase tracking-[0.18em] flex items-center hover:opacity-80 transition-opacity">
+                    Refine Prompt
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="flex-1 flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-3 px-2">
+              <span class="font-headline text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">
+                Prompt Result
+              </span>
+            </div>
+
+            <div class="flex-1 flex flex-col bg-surface-container-low border border-outline-variant/5 rounded-xl overflow-hidden min-h-0">
+              <div class="flex-1 p-6 overflow-y-auto no-scrollbar min-h-[0]">
+                <div class="max-w-prose space-y-5">
+                  <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-40">
+                      Missing Details Summary
+                    </span>
+                    <p id="summary-text" class="text-on-surface font-body text-sm leading-6">
+                      Start a new session and describe an image idea. The AI
+                      will point out what is missing before building a fuller
+                      prompt.
+                    </p>
+                  </div>
+
+                  <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-40">
+                      Final Prompt
+                    </span>
+                    <div id="final-prompt-text" class="bg-surface-container-lowest p-5 rounded border border-outline-variant/10 text-sm italic text-neutral-600 leading-7">
+                      No final prompt yet.
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-40">
+                      Negative Prompt
+                    </span>
+                    <div id="negative-prompt-text" class="bg-surface-container-lowest p-5 rounded border border-outline-variant/10 text-sm italic text-neutral-600 leading-7">
+                      No negative prompt yet.
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-40">
+                      Why This Works
+                    </span>
+                    <p id="why-text" class="text-on-surface font-body text-sm leading-6">
+                      The final explanation will appear here after the prompt is
+                      refined.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 grid grid-cols-2 gap-3 bg-surface-container-high/40 border-t border-outline-variant/10">
+                <button id="copy-prompt-btn" class="flex items-center justify-center gap-2 py-3 px-2 border border-outline-variant/30 rounded bg-surface-container-lowest text-[11px] font-label font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-300">
+                  <span class="material-symbols-outlined">content_copy</span>
+                  Copy Prompt
+                </button>
+                <button id="refine-again-btn" class="flex items-center justify-center gap-2 py-3 px-2 border border-outline-variant/30 rounded bg-surface-container-lowest text-[11px] font-label font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-300">
+                  <span class="material-symbols-outlined">rebase_edit</span>
+                  Refine Again
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
