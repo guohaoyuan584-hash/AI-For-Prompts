@@ -5,7 +5,7 @@ const path = require("node:path");
 const ROOT_DIR = __dirname;
 const PORT = process.env.PORT || 3000;
 const ENTRY_FILE = path.join(ROOT_DIR, "flysmallpig-prompt-ai.html");
-const GEMINI_MODEL = "gemini-2.5-flash";
+const OPENAI_MODEL = "gpt-5-nano";
 const DEFAULT_RESULT = {
   summary:
     "Start a new session and describe an image idea. The AI will point out what is missing before building a fuller prompt.",
@@ -357,33 +357,35 @@ function buildTranscript(messages) {
     .join("\n");
 }
 
-function collectImageParts(messages) {
+function collectImageInputs(messages) {
   return messages.flatMap((message) => {
     if (!Array.isArray(message.attachments)) return [];
     return message.attachments
       .filter(
         (attachment) =>
           attachment &&
-          typeof attachment.mimeType === "string" &&
-          typeof attachment.base64 === "string"
+          typeof attachment.dataUrl === "string"
       )
       .map((attachment) => ({
-        inline_data: {
-          mime_type: attachment.mimeType,
-          data: attachment.base64,
+        type: "image_url",
+        image_url: {
+          url: attachment.dataUrl,
+          detail: "low",
         },
       }));
   });
 }
 
-function buildGeminiContents(messages, promptText) {
+function buildOpenAIInput(messages, promptText) {
   return [
     {
-      parts: [
+      role: "user",
+      content: [
         {
+          type: "text",
           text: promptText,
         },
-        ...collectImageParts(messages),
+        ...collectImageInputs(messages),
       ],
     },
   ];
@@ -912,29 +914,30 @@ function buildAnalysisResponseFallback(messages) {
   };
 }
 
-async function callGeminiForAnalysis({
+async function callOpenAIForAnalysis({
   messages,
   language,
   detectedFields,
   missingKeys,
 }) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Missing GEMINI_API_KEY. Create a .env file with GEMINI_API_KEY=your_key and restart the server."
+      "Missing OPENAI_API_KEY. Create a .env file with OPENAI_API_KEY=your_key and restart the server."
     );
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    "https://api.openai.com/v1/chat/completions",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: buildGeminiContents(
+        model: OPENAI_MODEL,
+        messages: buildOpenAIInput(
           messages,
           buildAnalysisRequest({
             messages,
@@ -943,9 +946,8 @@ async function callGeminiForAnalysis({
             missingKeys,
           })
         ),
-        generationConfig: {
-          temperature: 0.45,
-          responseMimeType: "application/json",
+        response_format: {
+          type: "json_object",
         },
       }),
     }
@@ -953,41 +955,38 @@ async function callGeminiForAnalysis({
 
   const data = await response.json();
   if (!response.ok) {
-    const message = data?.error?.message || "Gemini API request failed.";
+    const message = data?.error?.message || "OpenAI API request failed.";
     throw new Error(message);
   }
 
-  const text =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("")
-      .trim() || "";
+  const text = data?.choices?.[0]?.message?.content?.trim() || "";
 
   if (!text) {
-    throw new Error("Gemini returned an empty response.");
+    throw new Error("OpenAI returned an empty response.");
   }
 
   return normalizeModelPayload(text);
 }
 
-async function callGemini({ messages, mode, refinementCount }) {
-  const apiKey = process.env.GEMINI_API_KEY;
+async function callOpenAI({ messages, mode, refinementCount }) {
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Missing GEMINI_API_KEY. Create a .env file with GEMINI_API_KEY=your_key and restart the server."
+      "Missing OPENAI_API_KEY. Create a .env file with OPENAI_API_KEY=your_key and restart the server."
     );
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    "https://api.openai.com/v1/chat/completions",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: buildGeminiContents(
+        model: OPENAI_MODEL,
+        messages: buildOpenAIInput(
           messages,
           buildFinalPromptRequest({
             messages,
@@ -1015,9 +1014,8 @@ async function callGemini({ messages, mode, refinementCount }) {
             })(),
           })
         ),
-        generationConfig: {
-          temperature: mode === "refine_again" ? 0.8 : 0.45,
-          responseMimeType: "application/json",
+        response_format: {
+          type: "json_object",
         },
       }),
     }
@@ -1025,41 +1023,38 @@ async function callGemini({ messages, mode, refinementCount }) {
 
   const data = await response.json();
   if (!response.ok) {
-    const message = data?.error?.message || "Gemini API request failed.";
+    const message = data?.error?.message || "OpenAI API request failed.";
     throw new Error(message);
   }
 
-  const text =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("")
-      .trim() || "";
+  const text = data?.choices?.[0]?.message?.content?.trim() || "";
 
   if (!text) {
-    throw new Error("Gemini returned an empty response.");
+    throw new Error("OpenAI returned an empty response.");
   }
 
   return normalizeModelPayload(text);
 }
 
-async function callGeminiForQuestion({ messages, language, knownFields, missingKeys }) {
-  const apiKey = process.env.GEMINI_API_KEY;
+async function callOpenAIForQuestion({ messages, language, knownFields, missingKeys }) {
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Missing GEMINI_API_KEY. Create a .env file with GEMINI_API_KEY=your_key and restart the server."
+      "Missing OPENAI_API_KEY. Create a .env file with OPENAI_API_KEY=your_key and restart the server."
     );
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    "https://api.openai.com/v1/chat/completions",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: buildGeminiContents(
+        model: OPENAI_MODEL,
+        messages: buildOpenAIInput(
           messages,
           buildQuestionAnswerRequest({
             messages,
@@ -1068,9 +1063,8 @@ async function callGeminiForQuestion({ messages, language, knownFields, missingK
             missingKeys,
           })
         ),
-        generationConfig: {
-          temperature: 0.35,
-          responseMimeType: "application/json",
+        response_format: {
+          type: "json_object",
         },
       }),
     }
@@ -1078,18 +1072,14 @@ async function callGeminiForQuestion({ messages, language, knownFields, missingK
 
   const data = await response.json();
   if (!response.ok) {
-    const message = data?.error?.message || "Gemini API request failed.";
+    const message = data?.error?.message || "OpenAI API request failed.";
     throw new Error(message);
   }
 
-  const text =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("")
-      .trim() || "";
+  const text = data?.choices?.[0]?.message?.content?.trim() || "";
 
   if (!text) {
-    throw new Error("Gemini returned an empty response.");
+    throw new Error("OpenAI returned an empty response.");
   }
 
   return normalizeModelPayload(text);
@@ -1106,7 +1096,7 @@ function normalizeModelPayload(rawText) {
   try {
     parsed = JSON.parse(cleaned);
   } catch (error) {
-    throw new Error("Gemini returned JSON in an unexpected format.");
+    throw new Error("OpenAI returned JSON in an unexpected format.");
   }
 
   const status = parsed.status === "waiting_followup" ? "waiting_followup" : "complete";
@@ -1181,7 +1171,7 @@ async function handleRefine(req, res) {
 
     if (mode === "continue" && userMessages.length === 1) {
       try {
-        const analysisPayload = await callGeminiForAnalysis({
+        const analysisPayload = await callOpenAIForAnalysis({
           messages: normalizedMessages,
           language,
           detectedFields: firstFields,
@@ -1194,7 +1184,7 @@ async function handleRefine(req, res) {
     }
 
     if (mode === "continue" && looksLikeQuestion(latestUserMessage)) {
-      const questionPayload = await callGeminiForQuestion({
+      const questionPayload = await callOpenAIForQuestion({
         messages: normalizedMessages,
         language,
         knownFields: allFields,
@@ -1203,7 +1193,7 @@ async function handleRefine(req, res) {
       return sendJson(res, 200, questionPayload);
     }
 
-    const modelPayload = await callGemini({
+    const modelPayload = await callOpenAI({
       messages: normalizedMessages,
       mode,
       refinementCount,
